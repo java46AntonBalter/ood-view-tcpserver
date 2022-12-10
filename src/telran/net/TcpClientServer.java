@@ -23,8 +23,6 @@ public class TcpClientServer implements Runnable {
 		this.timeOfRequest = Instant.now();
 		input = new ObjectInputStream(socket.getInputStream());
 		output = new ObjectOutputStream(socket.getOutputStream());
-
-		tcpServer.connectionsCounterDecrement();
 	}
 
 	@Override
