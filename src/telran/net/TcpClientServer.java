@@ -7,7 +7,7 @@ import java.io.*;
 
 public class TcpClientServer implements Runnable {
 	private static final int READ_TIMEOUT = 100;
-	private static final int CLIENT_TIMEOUT = 5000;
+	private static final int CLIENT_IDLE_TIMEOUT = 5000;
 	private Socket socket;
 	private ObjectInputStream input;
 	private ObjectOutputStream output;
@@ -36,7 +36,7 @@ public class TcpClientServer implements Runnable {
 				output.writeObject(response);
 			} catch (SocketTimeoutException e) {
 				if ((tcpServer.getConnectionsCounter() > 0)
-						&& (Duration.between(timeOfRequest, Instant.now()).toMillis() >= CLIENT_TIMEOUT)) {
+						&& (Duration.between(timeOfRequest, Instant.now()).toMillis() >= CLIENT_IDLE_TIMEOUT)) {
 					System.out.println("client timed out and closed connection");
 					break;
 				}
