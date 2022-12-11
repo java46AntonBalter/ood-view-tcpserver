@@ -27,6 +27,7 @@ public class TcpClientServer implements Runnable {
 	public void run() {
 
 		while (!tcpServer.isShutdown) {
+			tcpServer.connectionsCounterDecrement();
 			try {
 				Request request = (Request) input.readObject();
 				timeOfRequest = 0;
