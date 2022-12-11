@@ -11,23 +11,22 @@ public class TcpClientServer implements Runnable {
 	private ObjectOutputStream output;
 	private ApplProtocol protocol;
 	private TcpServer tcpServer;
-	private int timeOfRequest;
+	
 
 	public TcpClientServer(Socket socket, ApplProtocol protocol, TcpServer tcpServer) throws Exception {
 		this.protocol = protocol;
 		this.socket = socket;
 		this.socket.setSoTimeout(READ_TIMEOUT);
 		this.tcpServer = tcpServer;
-		this.timeOfRequest = 0;
 		input = new ObjectInputStream(socket.getInputStream());
 		output = new ObjectOutputStream(socket.getOutputStream());
 	}
 
 	@Override
 	public void run() {
-
+		int timeOfRequest = 0;
+		tcpServer.connectionsCounterDecrement();
 		while (!tcpServer.isShutdown) {
-			tcpServer.connectionsCounterDecrement();
 			try {
 				Request request = (Request) input.readObject();
 				timeOfRequest = 0;
