@@ -36,9 +36,10 @@ public class TcpClientServer implements Runnable {
 				timeOfRequest += READ_TIMEOUT;
 				if ((tcpServer.getConnectionsCounter() > 0) && (timeOfRequest >= CLIENT_IDLE_TIMEOUT)) {
 					try {
+						System.out.println("client timed out and closed connection");
 						socket.close();
 					} catch (IOException e1) {
-						System.out.println("client timed out and closed connection");
+						
 					}
 					break;
 				}
