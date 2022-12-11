@@ -33,12 +33,11 @@ public class TcpServer implements Runnable {
 
 		while (!isShutdown) {
 			try {
-				Socket socket = serverSocket.accept();
 				connectionsCounter.incrementAndGet();
-				TcpClientServer clientServer = new TcpClientServer(socket, protocol, this);
+				Socket socket = serverSocket.accept();
 				connectionsCounter.decrementAndGet();
-				executor.execute(clientServer);
-				
+				TcpClientServer clientServer = new TcpClientServer(socket, protocol, this);				
+				executor.execute(clientServer);				
 			} catch (SocketTimeoutException e) {
 				
 			}
