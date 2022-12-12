@@ -5,13 +5,13 @@ import java.io.*;
 
 public class TcpClientServer implements Runnable {
 	private static final int READ_TIMEOUT = 100;
-	private static final int CLIENT_IDLE_TIMEOUT = 5000;
 	private Socket socket;
 	private ObjectInputStream input;
 	private ObjectOutputStream output;
 	private ApplProtocol protocol;
 	private TcpServer tcpServer;
-	
+	private static final int CLIENT_IDLE_TIMEOUT = 60000;
+	private int idlePeriod;
 
 	public TcpClientServer(Socket socket, ApplProtocol protocol, TcpServer tcpServer) throws Exception {
 		this.protocol = protocol;
@@ -24,26 +24,19 @@ public class TcpClientServer implements Runnable {
 
 	@Override
 	public void run() {
-		int timeOfRequest = 0;
-		tcpServer.connectionsCounterDecrement();
+		
 		while (!tcpServer.isShutdown) {
 			try {
 				Request request = (Request) input.readObject();
-				timeOfRequest = 0;
+				idlePeriod = 0;
 				Response response = protocol.getResponse(request);
 				output.writeObject(response);
 			} catch (SocketTimeoutException e) {
-				timeOfRequest += READ_TIMEOUT;
-				if ((tcpServer.getConnectionsCounter() > 0) && (timeOfRequest >= CLIENT_IDLE_TIMEOUT)) {
-					try {
-						System.out.println("client timed out and closed connection");
-						socket.close();
-					} catch (IOException e1) {
-						
-					}
+				idlePeriod += READ_TIMEOUT;
+				if (idlePeriod > CLIENT_IDLE_TIMEOUT &&
+						tcpServer.clientsCounter.get() > tcpServer.nThreads) {
 					break;
 				}
-
 			} catch (EOFException e) {
 				System.out.println("client closed connection");
 				break;
@@ -52,14 +45,20 @@ public class TcpClientServer implements Runnable {
 				break;
 			}
 		}
-		if (tcpServer.isShutdown) {
-			System.out.println("client connection closed by server shutdown");
+		if (tcpServer.isShutdown | idlePeriod > CLIENT_IDLE_TIMEOUT) {
 			try {
 				socket.close();
 			} catch (IOException e1) {
 
 			}
+			if (tcpServer.isShutdown) {
+				System.out.println("client connection closed by server shutdown");
+			} else {
+				System.out.println("client connection closed due to Idle Timeout");
+			}
+
 		}
+		tcpServer.clientsCounter.getAndDecrement();
 	}
 
 }

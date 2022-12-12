@@ -4,20 +4,23 @@ import java.net.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.io.*;
 
 public class TcpServer implements Runnable {
-	private static final int DEFAULT_N_THREADS = 5;
+	private  static final int DEFAULT_N_THREADS = 5;
 	private static final int ACCEPT_TIME_OUT = 100;
 	private ServerSocket serverSocket;
 	private int port;
 	private ApplProtocol protocol;
 	private ExecutorService executor;
 	volatile boolean isShutdown = false;
-	private static AtomicInteger connectionsCounter = new AtomicInteger();
+	int nThreads;
+	AtomicInteger clientsCounter = new AtomicInteger(0);
 
 	public TcpServer(int port, ApplProtocol protocol, int nThreads) throws Exception {
 		this.port = port;
 		this.protocol = protocol;
+		this.nThreads = nThreads;
 		executor = Executors.newFixedThreadPool(nThreads);
 		serverSocket = new ServerSocket(port);
 		serverSocket.setSoTimeout(ACCEPT_TIME_OUT);
@@ -34,9 +37,9 @@ public class TcpServer implements Runnable {
 		while (!isShutdown) {
 			try {
 				Socket socket = serverSocket.accept();
-				connectionsCounter.incrementAndGet();
-				TcpClientServer clientServer = new TcpClientServer(socket, protocol, this);				
-				executor.execute(clientServer);				
+				clientsCounter.getAndIncrement();
+				TcpClientServer clientServer = new TcpClientServer(socket, protocol, this);
+				executor.execute(clientServer);
 			} catch (SocketTimeoutException e) {
 				
 			}
@@ -47,18 +50,11 @@ public class TcpServer implements Runnable {
 		}
 
 	}
-	public void connectionsCounterDecrement() {
-		connectionsCounter.decrementAndGet();
-	}
 
 	public void shutdown() {
 		isShutdown = true;
 		executor.shutdown();
 
-	}
-
-	public int getConnectionsCounter() {
-		return connectionsCounter.get();
 	}
 
 }
