@@ -1,7 +1,5 @@
 package telran.net.test;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
-
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
